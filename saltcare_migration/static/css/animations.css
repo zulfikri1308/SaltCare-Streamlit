@@ -1,0 +1,79 @@
+.reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+        opacity 0.75s ease,
+        transform 0.75s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-delay {
+    transition-delay: 0.16s;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-12px);
+    }
+}
+
+@keyframes heartbeat {
+    0%, 100% {
+        transform: scale(1);
+    }
+    12% {
+        transform: scale(1.04);
+    }
+    24% {
+        transform: scale(1);
+    }
+    36% {
+        transform: scale(1.025);
+    }
+    48% {
+        transform: scale(1);
+    }
+}
+
+@keyframes orbit-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes morph {
+    0% {
+        border-radius: 45% 55% 60% 40%;
+        transform: rotate(0deg) scale(0.97);
+    }
+    100% {
+        border-radius: 60% 40% 42% 58%;
+        transform: rotate(8deg) scale(1.04);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .reveal {
+        opacity: 1;
+        transform: none;
+    }
+}

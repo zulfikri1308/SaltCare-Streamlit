@@ -1,0 +1,222 @@
+
+{% extends "base.html" %}
+
+{% block title %}Tentang SaltCare{% endblock %}
+
+{% block content %}
+<section class="sc-about">
+    <style>
+        .sc-about {
+            --ink: #17243b; --muted: #65748b; --blue: #2563eb;
+            color: var(--ink); padding: 44px 0 76px;
+        }
+        .sc-about .sc-wrap { width: min(1080px, calc(100% - 32px)); margin: auto; }
+        .sc-about .sc-hero {
+            padding: clamp(28px, 5vw, 56px);
+            border: 1px solid #e0eaf8; border-radius: 28px;
+            background: linear-gradient(135deg, #fff 0%, #eff6ff 100%);
+            box-shadow: 0 18px 55px rgba(29, 61, 115, .07);
+        }
+        .sc-about .sc-label {
+            display: inline-flex; gap: 8px; align-items: center;
+            padding: 8px 13px; border-radius: 999px;
+            color: #1d4ed8; background: #dbeafe;
+            font-size: .78rem; font-weight: 800; letter-spacing: .06em;
+        }
+        .sc-about h1 {
+            font-size: clamp(2.2rem, 4.5vw, 3.5rem);
+            line-height: 1.1; letter-spacing: -.045em; font-weight: 850;
+            margin: 22px 0 18px;
+        }
+        .sc-about .sc-blue { color: var(--blue); }
+        .sc-about .sc-lead { max-width: 760px; color: var(--muted); line-height: 1.85; }
+        .sc-about .sc-section-title {
+            font-size: clamp(1.55rem, 3vw, 2.1rem);
+            font-weight: 850; letter-spacing: -.03em;
+        }
+        .sc-about .sc-card {
+            height: 100%; border: 1px solid #e5ecf5;
+            border-radius: 22px; padding: 25px; background: #fff;
+            box-shadow: 0 10px 30px rgba(30, 55, 90, .045);
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+        .sc-about .sc-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 36px rgba(37, 99, 235, .1);
+        }
+        .sc-about .sc-icon {
+            width: 52px; height: 52px; display: grid; place-items: center;
+            border-radius: 17px; background: #eff6ff; color: #2563eb;
+            font-size: 1.45rem; margin-bottom: 18px;
+        }
+        .sc-about .sc-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 10px; }
+        .sc-about .sc-card p { color: var(--muted); line-height: 1.8; margin-bottom: 0; }
+        .sc-about .sc-step {
+            border-left: 3px solid #bfdbfe; padding: 2px 0 2px 20px;
+            margin-bottom: 24px;
+        }
+        .sc-about .sc-step:last-child { margin-bottom: 0; }
+        .sc-about .sc-step h3 { font-size: 1rem; font-weight: 800; }
+        .sc-about .sc-step p { color: var(--muted); line-height: 1.8; margin: 0; }
+        .sc-about .sc-callout {
+            padding: 24px; border-radius: 20px;
+            background: #fff7ed; border: 1px solid #fed7aa;
+            color: #9a3412; line-height: 1.8;
+        }
+        .sc-about .sc-btn {
+            display: inline-flex; gap: 9px; align-items: center;
+            justify-content: center; padding: 13px 20px; border-radius: 13px;
+            background: #2563eb; color: #fff; text-decoration: none;
+            font-weight: 750; transition: transform .2s ease;
+        }
+        .sc-about .sc-btn:hover { color: #fff; transform: translateY(-2px); }
+        .sc-about .sc-btn-outline {
+            background: #fff; color: #1d4ed8; border: 1px solid #cbdcf8;
+        }
+        .sc-about .sc-btn-outline:hover { color: #1d4ed8; }
+        .sc-about .sc-fade { animation: scAboutRise .6s ease both; }
+        @keyframes scAboutRise {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .sc-about *, .sc-about *::before, .sc-about *::after {
+                animation: none !important; transition: none !important;
+            }
+        }
+    </style>
+
+    <div class="sc-wrap">
+        <header class="sc-hero sc-fade mb-5">
+            <span class="sc-label">
+                <i class="bi bi-heart-pulse-fill"></i> ABOUT SALTCARE
+            </span>
+            <h1>
+                Memahami risiko.<br>
+                <span class="sc-blue">Mengenal alasan di balik prediksi.</span>
+            </h1>
+            <p class="sc-lead mb-4">
+                SaltCare adalah prototipe aplikasi penelitian yang
+                menggabungkan klasifikasi machine learning dan penjelasan
+                model untuk membantu pengguna memahami hasil yang dihasilkan
+                berdasarkan data masukan.
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+                <a class="sc-btn" href="{{ url_for('prediction.prediction') }}">
+                    <i class="bi bi-activity"></i> Coba Klasifikasi
+                </a>
+                <a class="sc-btn sc-btn-outline" href="{{ url_for('main.education') }}">
+                    <i class="bi bi-book"></i> Buka Edukasi
+                </a>
+            </div>
+        </header>
+
+        <section class="mb-5">
+            <span class="sc-label">TUJUAN APLIKASI</span>
+            <h2 class="sc-section-title mt-3 mb-3">Apa yang ingin dicapai SaltCare?</h2>
+            <p class="sc-lead mb-4">
+                SaltCare dirancang sebagai sarana demonstrasi dan eksplorasi
+                model klasifikasi, bukan sebagai pengganti pemeriksaan medis.
+            </p>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <article class="sc-card">
+                        <div class="sc-icon"><i class="bi bi-cpu"></i></div>
+                        <h3>Klasifikasi dengan Machine Learning</h3>
+                        <p>
+                            Model Random Forest memproses sepuluh fitur
+                            masukan yang tersedia pada aplikasi untuk
+                            menghasilkan kelas prediksi sesuai model terlatih.
+                        </p>
+                    </article>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <article class="sc-card">
+                        <div class="sc-icon"><i class="bi bi-diagram-3"></i></div>
+                        <h3>Penjelasan dengan SHAP</h3>
+                        <p>
+                            SHAP digunakan untuk menjelaskan kontribusi fitur
+                            terhadap prediksi individual, sehingga hasil
+                            model dapat ditelaah lebih lanjut.
+                        </p>
+                    </article>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <article class="sc-card">
+                        <div class="sc-icon"><i class="bi bi-journal-check"></i></div>
+                        <h3>Eksplorasi Hasil</h3>
+                        <p>
+                            Dashboard dan riwayat membantu meninjau hasil
+                            klasifikasi yang tersimpan selama penggunaan
+                            prototipe.
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="row g-4 mb-5 align-items-start">
+            <div class="col-lg-5">
+                <span class="sc-label">CARA KERJA</span>
+                <h2 class="sc-section-title mt-3 mb-3">Alur penggunaan</h2>
+                <p class="sc-lead">
+                    Secara umum, pengguna memasukkan data, melihat keluaran
+                    model, kemudian meninjau penjelasan yang tersedia.
+                </p>
+            </div>
+            <div class="col-lg-7">
+                <div class="sc-card">
+                    <div class="sc-step">
+                        <h3>01. Masukkan data</h3>
+                        <p>Isi sepuluh fitur sesuai kolom dan petunjuk yang disediakan.</p>
+                    </div>
+                    <div class="sc-step">
+                        <h3>02. Jalankan klasifikasi</h3>
+                        <p>Model Random Forest menghasilkan kelas prediksi berdasarkan pola yang dipelajari dari data pelatihan.</p>
+                    </div>
+                    <div class="sc-step">
+                        <h3>03. Tinjau hasil</h3>
+                        <p>Halaman hasil menampilkan keluaran model dan informasi probabilitas yang tersedia.</p>
+                    </div>
+                    <div class="sc-step">
+                        <h3>04. Pelajari penjelasan SHAP</h3>
+                        <p>Kontribusi fitur ditampilkan untuk membantu memahami prediksi individual, bukan membuktikan hubungan sebab-akibat.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-5">
+            <span class="sc-label">TRANSPARANSI</span>
+            <h2 class="sc-section-title mt-3 mb-3">Batasan yang perlu dipahami</h2>
+            <div class="sc-callout">
+                <strong><i class="bi bi-exclamation-triangle-fill me-2"></i>Penting</strong>
+                <ul class="mt-3 mb-0">
+                    <li>SaltCare adalah prototipe penelitian, bukan perangkat diagnosis medis.</li>
+                    <li>Prediksi model bukan pengukuran tekanan darah secara langsung.</li>
+                    <li>Probabilitas model bukan jaminan bahwa seseorang mengalami atau tidak mengalami hipertensi.</li>
+                    <li>SHAP menjelaskan kontribusi fitur terhadap keluaran model, bukan membuktikan sebab-akibat medis.</li>
+                    <li>Untuk mengetahui kondisi tekanan darah, lakukan pengukuran yang tepat dan konsultasikan hasilnya kepada tenaga kesehatan.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="text-center">
+            <h2 class="sc-section-title mb-3">Jelajahi fitur SaltCare</h2>
+            <p class="sc-lead mx-auto mb-4">
+                Gunakan prototipe ini untuk memahami alur klasifikasi dan
+                penjelasan model dalam konteks penelitian.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a class="sc-btn" href="{{ url_for('prediction.prediction') }}">
+                    Mulai Prediksi <i class="bi bi-arrow-right"></i>
+                </a>
+                <a class="sc-btn sc-btn-outline" href="{{ url_for('main.dashboard') }}">
+                    Lihat Dashboard <i class="bi bi-bar-chart"></i>
+                </a>
+            </div>
+        </section>
+    </div>
+</section>
+{% endblock %}

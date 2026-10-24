@@ -1,0 +1,232 @@
+
+{% extends "base.html" %}
+
+{% block title %}SaltCare | Prediksi Hipertensi{% endblock %}
+
+{% block content %}
+
+<!-- HERO SECTION -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center g-5">
+
+            <div class="col-lg-7 reveal">
+                <span class="eyebrow">
+                    <i class="bi bi-heart-pulse me-1"></i>
+                    MACHINE LEARNING · RANDOM FOREST · SHAP
+                </span>
+
+                <h1 class="hero-title mt-4">
+                    Kenali Risiko Hipertensi,
+                    <span class="text-gradient">
+                        Mulai dari Pola Konsumsi Garam.
+                    </span>
+                </h1>
+
+                <p class="hero-description mt-4">
+                    SaltCare merupakan prototipe penelitian untuk mempelajari
+                    klasifikasi hipertensi berdasarkan sejumlah faktor gaya
+                    hidup dan kesehatan. Hasil model dilengkapi penjelasan
+                    untuk membantu memahami kontribusi fitur terhadap prediksi.
+                </p>
+
+                <div class="d-flex flex-wrap gap-3 mt-4">
+                    <a
+                        class="btn btn-salt btn-lg"
+                        href="{{ url_for('prediction.prediction') }}"
+                    >
+                        Mulai Prediksi
+                        <span class="arrow">→</span>
+                    </a>
+
+                    <a
+                        class="btn btn-outline-salt btn-lg"
+                        href="{{ url_for('main.education') }}"
+                    >
+                        <i class="bi bi-book me-2"></i>
+                        Pelajari Lebih Lanjut
+                    </a>
+                </div>
+
+                <div class="hero-note mt-4">
+                    <span class="note-dot"></span>
+                    Hasil merupakan keluaran model penelitian,
+                    bukan diagnosis medis.
+                </div>
+            </div>
+
+            <!-- VISUAL HERO -->
+            <div class="col-lg-5 reveal reveal-delay">
+                <div
+                    class="hero-visual"
+                    role="img"
+                    aria-label="Ilustrasi konseptual kesehatan jantung dan analisis data"
+                >
+                    <div class="visual-orbit orbit-one"></div>
+                    <div class="visual-orbit orbit-two"></div>
+
+                    <div class="hero-symbol" aria-hidden="true">
+                        <i class="bi bi-heart-pulse-fill"></i>
+                    </div>
+
+                    <div class="floating-card float-top">
+                        <span class="mini-icon">
+                            <i class="bi bi-cpu"></i>
+                        </span>
+                        <div>
+                            <strong>Prediksi berbasis data</strong>
+                            <small>Model Random Forest</small>
+                        </div>
+                    </div>
+
+                    <div class="floating-card float-bottom">
+                        <span class="mini-icon">
+                            <i class="bi bi-diagram-3"></i>
+                        </span>
+                        <div>
+                            <strong>Penjelasan model</strong>
+                            <small>Analisis fitur menggunakan SHAP</small>
+                        </div>
+                    </div>
+
+                    <span class="decor decor-one"></span>
+                    <span class="decor decor-two"></span>
+                    <span class="decor decor-three"></span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- FEATURE SECTION -->
+<section class="feature-section">
+    <div class="container">
+
+        <div class="section-heading reveal">
+            <span class="eyebrow">MENGENAL SALTCARE</span>
+
+            <h2>
+                Lebih dari sekadar hasil prediksi.
+            </h2>
+
+            <p>
+                Jelajahi klasifikasi, penjelasan model, dan informasi
+                kesehatan dalam satu prototipe penelitian.
+            </p>
+        </div>
+
+        <div class="row g-4 mt-3">
+
+            <!-- FITUR PREDIKSI -->
+            <div class="col-md-4 reveal">
+                <article class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+
+                    <h3>Prediksi Model</h3>
+
+                    <p>
+                        Memproses sepuluh fitur masukan menggunakan model
+                        Random Forest yang telah disiapkan untuk penelitian.
+                    </p>
+
+                    <a
+                        href="{{ url_for('prediction.prediction') }}"
+                        class="btn btn-outline-salt mt-2"
+                    >
+                        Coba Prediksi
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </article>
+            </div>
+
+            <!-- FITUR SHAP -->
+            <div class="col-md-4 reveal reveal-delay">
+                <article class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="bi bi-diagram-3"></i>
+                    </div>
+
+                    <h3>Penjelasan SHAP</h3>
+
+                    <p>
+                        Membantu menelaah kontribusi fitur terhadap keluaran
+                        model untuk suatu data prediksi.
+                    </p>
+
+                    <a
+                        href="{{ url_for('prediction.explanation') }}"
+                        class="btn btn-outline-salt mt-2"
+                    >
+                        Pelajari SHAP
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </article>
+            </div>
+
+            <!-- FITUR EDUKASI -->
+            <div class="col-md-4 reveal reveal-delay">
+                <article class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="bi bi-book-half"></i>
+                    </div>
+
+                    <h3>Informasi Kesehatan</h3>
+
+                    <p>
+                        Baca informasi edukatif tentang hipertensi,
+                        konsumsi garam, dan kebiasaan hidup sehat.
+                    </p>
+
+                    <a
+                        href="{{ url_for('main.education') }}"
+                        class="btn btn-outline-salt mt-2"
+                    >
+                        Buka Edukasi
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </article>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- TENTANG APLIKASI -->
+<section class="feature-section pt-0">
+    <div class="container">
+        <div class="feature-card reveal">
+            <div class="row align-items-center g-4">
+
+                <div class="col-lg-8">
+                    <span class="eyebrow">TENTANG APLIKASI</span>
+
+                    <h2 class="mt-3">
+                        Kenali cara kerja SaltCare.
+                    </h2>
+
+                    <p class="hero-description mt-3 mb-0">
+                        Pelajari tujuan pengembangan aplikasi, penggunaan
+                        Random Forest, penjelasan SHAP, serta batasan
+                        prototipe dalam konteks penelitian.
+                    </p>
+                </div>
+
+                <div class="col-lg-4 text-lg-end">
+                    <a
+                        href="{{ url_for('main.about') }}"
+                        class="btn btn-salt btn-lg"
+                    >
+                        Tentang SaltCare
+                        <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,888 @@
+
+{% extends "base.html" %}
+
+{% block title %}Dashboard Analytics | SaltCare{% endblock %}
+
+{% block content %}
+<section class="sc-dashboard py-5">
+    <div class="container">
+
+        <!-- HEADER -->
+        <header class="sc-page-header reveal mb-5">
+            <div>
+                <span class="sc-eyebrow">
+                    <i class="bi bi-activity me-2"></i> HEALTH DATA INTELLIGENCE
+                </span>
+                <h1 class="display-5 fw-bold mt-3 mb-2">
+                    Dashboard <span class="sc-gradient-text">Analytics</span>
+                </h1>
+                <p class="text-secondary mb-0">
+                    Pantau ringkasan klasifikasi dan aktivitas prediksi
+                    yang tersimpan di SaltCare.
+                </p>
+            </div>
+            <a href="{{ url_for('prediction.prediction') }}"
+               class="btn btn-primary sc-primary-btn">
+                <i class="bi bi-plus-lg me-2"></i> Prediksi Baru
+            </a>
+        </header>
+
+        <!-- INTRO PANEL -->
+        <div class="sc-overview-panel reveal mb-4">
+            <div class="sc-overview-content">
+                <div class="sc-overview-icon">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <div>
+                    <span class="sc-overview-label">SALTCARE OVERVIEW</span>
+                    <h2 class="h5 fw-bold mt-1 mb-1">Ringkasan aktivitas model</h2>
+                    <p class="text-secondary mb-0">
+                        Statistik berikut dihitung dari riwayat prediksi
+                        yang tersimpan pada prototipe ini.
+                    </p>
+                </div>
+            </div>
+            <div class="sc-live-indicator">
+                <span class="sc-live-dot"></span>
+                Data riwayat
+            </div>
+        </div>
+
+        <!-- STATISTICS -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <article class="sc-stat-card reveal">
+                    <div class="sc-stat-top">
+                        <div class="sc-stat-icon sc-icon-blue">
+                            <i class="bi bi-database"></i>
+                        </div>
+                        <span class="sc-stat-caption">SELURUH RIWAYAT</span>
+                    </div>
+                    <div class="sc-stat-value">{{ total_predictions }}</div>
+                    <div class="sc-stat-title">Total Prediksi</div>
+                    <div class="sc-stat-footer">
+                        <i class="bi bi-collection me-1"></i>
+                        Jumlah prediksi tersimpan
+                    </div>
+                </article>
+            </div>
+
+            <div class="col-md-4">
+                <article class="sc-stat-card sc-stat-warning reveal">
+                    <div class="sc-stat-top">
+                        <div class="sc-stat-icon sc-icon-amber">
+                            <i class="bi bi-heart-pulse"></i>
+                        </div>
+                        <span class="sc-stat-caption">KELAS MODEL</span>
+                    </div>
+                    <div class="sc-stat-value">{{ hypertension_count }}</div>
+                    <div class="sc-stat-title">Terklasifikasi Hipertensi</div>
+                    <div class="sc-stat-footer">
+                        <span class="sc-stat-dot sc-dot-amber"></span>
+                        {{ hypertension_percentage }}% dari riwayat
+                    </div>
+                </article>
+            </div>
+
+            <div class="col-md-4">
+                <article class="sc-stat-card sc-stat-success reveal">
+                    <div class="sc-stat-top">
+                        <div class="sc-stat-icon sc-icon-green">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <span class="sc-stat-caption">KELAS MODEL</span>
+                    </div>
+                    <div class="sc-stat-value">{{ non_hypertension_count }}</div>
+                    <div class="sc-stat-title">Tidak Terklasifikasi Hipertensi</div>
+                    <div class="sc-stat-footer">
+                        <span class="sc-stat-dot sc-dot-green"></span>
+                        {{ non_hypertension_percentage }}% dari riwayat
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-7">
+                <section class="sc-panel h-100 reveal">
+                    <div class="sc-panel-header">
+                        <div class="sc-panel-heading">
+                            <div class="sc-panel-icon">
+                                <i class="bi bi-pie-chart"></i>
+                            </div>
+                            <div>
+                                <h2 class="h5 fw-bold mb-1">Distribusi Klasifikasi</h2>
+                                <p class="small text-secondary mb-0">
+                                    Proporsi kelas dari seluruh riwayat.
+                                </p>
+                            </div>
+                        </div>
+                        <span class="sc-panel-tag">Ringkasan</span>
+                    </div>
+
+                    <div class="sc-chart-body">
+                        {% if total_predictions > 0 %}
+                            <div class="sc-doughnut-wrap">
+                                <canvas id="distributionChart"
+                                        aria-label="Diagram distribusi klasifikasi hipertensi dan tidak hipertensi"
+                                        role="img"></canvas>
+                            </div>
+                            <div class="sc-chart-note">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Diagram menunjukkan data yang tersimpan,
+                                bukan prevalensi hipertensi pada populasi.
+                            </div>
+                        {% else %}
+                            <div class="sc-empty-state">
+                                <div class="sc-empty-icon">
+                                    <i class="bi bi-bar-chart"></i>
+                                </div>
+                                <h3 class="h6 fw-bold">Belum ada data prediksi</h3>
+                                <p class="small text-secondary">
+                                    Lakukan prediksi pertama untuk menampilkan
+                                    distribusi klasifikasi.
+                                </p>
+                                <a href="{{ url_for('prediction.prediction') }}"
+                                   class="btn btn-primary btn-sm">
+                                    Mulai Prediksi
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-lg-5">
+                <section class="sc-panel h-100 reveal">
+                    <div class="sc-panel-header">
+                        <div class="sc-panel-heading">
+                            <div class="sc-panel-icon sc-panel-icon-teal">
+                                <i class="bi bi-bar-chart-line"></i>
+                            </div>
+                            <div>
+                                <h2 class="h5 fw-bold mb-1">Proporsi Kelas</h2>
+                                <p class="small text-secondary mb-0">
+                                    Perbandingan persentase hasil model.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sc-proportion-body">
+                        <div class="sc-proportion-item">
+                            <div class="sc-proportion-heading">
+                                <span>
+                                    <span class="sc-legend-dot sc-dot-amber"></span>
+                                    Terklasifikasi hipertensi
+                                </span>
+                                <strong>{{ hypertension_percentage }}%</strong>
+                            </div>
+                            <div class="progress sc-progress">
+                                <div class="progress-bar sc-progress-amber"
+                                     role="progressbar"
+                                     style="width: {{ hypertension_percentage }}%;"
+                                     aria-valuenow="{{ hypertension_percentage }}"
+                                     aria-valuemin="0" aria-valuemax="100"
+                                     aria-label="Persentase klasifikasi hipertensi">
+                                </div>
+                            </div>
+                            <p class="sc-proportion-count">
+                                {{ hypertension_count }} catatan
+                            </p>
+                        </div>
+
+                        <div class="sc-proportion-item">
+                            <div class="sc-proportion-heading">
+                                <span>
+                                    <span class="sc-legend-dot sc-dot-green"></span>
+                                    Tidak terklasifikasi hipertensi
+                                </span>
+                                <strong>{{ non_hypertension_percentage }}%</strong>
+                            </div>
+                            <div class="progress sc-progress">
+                                <div class="progress-bar sc-progress-green"
+                                     role="progressbar"
+                                     style="width: {{ non_hypertension_percentage }}%;"
+                                     aria-valuenow="{{ non_hypertension_percentage }}"
+                                     aria-valuemin="0" aria-valuemax="100"
+                                     aria-label="Persentase klasifikasi tidak hipertensi">
+                                </div>
+                            </div>
+                            <p class="sc-proportion-count">
+                                {{ non_hypertension_count }} catatan
+                            </p>
+                        </div>
+
+                        <div class="sc-insight-note">
+                            <i class="bi bi-lightbulb"></i>
+                            <div>
+                                <strong>Catatan interpretasi</strong>
+                                <p class="mb-0">
+                                    Kategori menunjukkan hasil klasifikasi
+                                    algoritma, bukan diagnosis klinis.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- RECENT PREDICTIONS -->
+        <section class="sc-panel reveal">
+            <div class="sc-panel-header sc-recent-header">
+                <div class="sc-panel-heading">
+                    <div class="sc-panel-icon sc-panel-icon-purple">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div>
+                        <h2 class="h5 fw-bold mb-1">Prediksi Terbaru</h2>
+                        <p class="small text-secondary mb-0">
+                            Ringkasan catatan prediksi terakhir yang tersedia.
+                        </p>
+                    </div>
+                </div>
+                <a href="{{ url_for('prediction.history') }}"
+                   class="sc-text-link">
+                    Lihat semua <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+
+            {% if latest_records %}
+                <div class="table-responsive">
+                    <table class="table sc-table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">Waktu Prediksi</th>
+                                <th scope="col">Usia</th>
+                                <th scope="col">Konsumsi Garam</th>
+                                <th scope="col">Hasil Klasifikasi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in latest_records %}
+                            <tr>
+                                <td>
+                                    <div class="sc-date-cell">
+                                        <span class="sc-date-icon">
+                                            <i class="bi bi-calendar3"></i>
+                                        </span>
+                                        <span>{{ record.created_at }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="sc-table-value">
+                                        {{ record.input_data.get('Age', '-') }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="sc-table-value">
+                                        {{ record.input_data.get('Salt_Intake', '-') }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if record.prediction == 1 %}
+                                        <span class="sc-result-pill sc-pill-warning">
+                                            <span class="sc-status-dot"></span>
+                                            Terklasifikasi hipertensi
+                                        </span>
+                                    {% else %}
+                                        <span class="sc-result-pill sc-pill-success">
+                                            <span class="sc-status-dot"></span>
+                                            Tidak terklasifikasi hipertensi
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="sc-empty-state sc-empty-table">
+                    <div class="sc-empty-icon">
+                        <i class="bi bi-inbox"></i>
+                    </div>
+                    <h3 class="h6 fw-bold">Riwayat masih kosong</h3>
+                    <p class="small text-secondary">
+                        Hasil prediksi yang tersimpan akan ditampilkan di sini.
+                    </p>
+                    <a href="{{ url_for('prediction.prediction') }}"
+                       class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-lg me-1"></i> Buat Prediksi
+                    </a>
+                </div>
+            {% endif %}
+        </section>
+
+        <!-- DISCLAIMER -->
+        <div class="sc-dashboard-disclaimer mt-4">
+            <i class="bi bi-info-circle me-2"></i>
+            Statistik ini merangkum riwayat penggunaan prototipe SaltCare.
+            Angka tersebut bukan estimasi prevalensi populasi dan tidak
+            dapat digunakan sebagai diagnosis medis.
+        </div>
+
+    </div>
+</section>
+
+<style>
+.sc-dashboard {
+    --sc-border: #e5ebf5;
+    --sc-muted: #64748b;
+    color: #172b4d;
+}
+
+.sc-gradient-text {
+    color: #245bdb;
+    background: linear-gradient(110deg, #245bdb, #10a99b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.sc-page-header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.sc-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 14px;
+    border: 1px solid #dce7fb;
+    border-radius: 999px;
+    background: #edf4ff;
+    color: #245bdb;
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+
+.sc-primary-btn {
+    flex-shrink: 0;
+    padding: 12px 18px;
+    border-radius: 13px;
+    font-weight: 700;
+    box-shadow: 0 8px 20px rgba(36, 91, 219, .15);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.sc-primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(36, 91, 219, .22);
+}
+
+.sc-overview-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 24px;
+    border: 1px solid #dfe9f8;
+    border-radius: 22px;
+    background: linear-gradient(115deg, #f0f6ff, #f0fbf9);
+}
+
+.sc-overview-content,
+.sc-panel-heading {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.sc-overview-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    flex: 0 0 54px;
+    border-radius: 17px;
+    background: #fff;
+    color: #245bdb;
+    font-size: 1.5rem;
+    box-shadow: 0 5px 18px rgba(36, 91, 219, .08);
+}
+
+.sc-overview-label {
+    color: #245bdb;
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+}
+
+.sc-live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding: 8px 12px;
+    border: 1px solid #d7eee6;
+    border-radius: 999px;
+    background: rgba(255,255,255,.75);
+    color: #087653;
+    font-size: .78rem;
+    font-weight: 700;
+}
+
+.sc-live-dot,
+.sc-stat-dot,
+.sc-legend-dot,
+.sc-status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.sc-live-dot { background: #10b981; }
+
+.sc-stat-card {
+    height: 100%;
+    padding: 24px;
+    border: 1px solid var(--sc-border);
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 12px 32px rgba(28, 55, 100, .055);
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.sc-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 18px 38px rgba(28, 55, 100, .10);
+}
+
+.sc-stat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.sc-stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    font-size: 1.35rem;
+}
+
+.sc-icon-blue { color: #245bdb; background: #edf4ff; }
+.sc-icon-amber { color: #b77908; background: #fff4d6; }
+.sc-icon-green { color: #07865f; background: #dcfce9; }
+
+.sc-stat-caption {
+    color: #8a98ad;
+    font-size: .64rem;
+    font-weight: 800;
+    letter-spacing: .07em;
+}
+
+.sc-stat-value {
+    margin-bottom: 4px;
+    font-size: clamp(2rem, 3vw, 2.65rem);
+    font-weight: 800;
+    letter-spacing: -.055em;
+    line-height: 1.15;
+}
+
+.sc-stat-title {
+    min-height: 42px;
+    color: #344762;
+    font-size: .92rem;
+    font-weight: 700;
+}
+
+.sc-stat-footer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid #edf1f7;
+    color: var(--sc-muted);
+    font-size: .78rem;
+}
+
+.sc-dot-amber { background: #f59e0b; }
+.sc-dot-green { background: #10b981; }
+
+.sc-panel {
+    overflow: hidden;
+    border: 1px solid var(--sc-border);
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 12px 32px rgba(28, 55, 100, .055);
+}
+
+.sc-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 23px 25px;
+    border-bottom: 1px solid var(--sc-border);
+}
+
+.sc-panel-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    border-radius: 15px;
+    background: #edf4ff;
+    color: #245bdb;
+    font-size: 1.2rem;
+}
+
+.sc-panel-icon-teal { color: #078b80; background: #e0faf5; }
+.sc-panel-icon-purple { color: #7555dc; background: #f0ebff; }
+
+.sc-panel-tag {
+    padding: 7px 10px;
+    border-radius: 9px;
+    background: #f2f6fc;
+    color: #64748b;
+    font-size: .72rem;
+    font-weight: 700;
+}
+
+.sc-chart-body {
+    padding: 22px 24px 20px;
+}
+
+.sc-doughnut-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 360px;
+    height: 290px;
+    margin: 0 auto 16px;
+}
+
+.sc-doughnut-wrap canvas {
+    max-width: 100%;
+}
+
+.sc-chart-note {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f7f9fd;
+    color: #64748b;
+    font-size: .78rem;
+    line-height: 1.65;
+}
+
+.sc-proportion-body {
+    padding: 28px 25px;
+}
+
+.sc-proportion-item + .sc-proportion-item {
+    margin-top: 34px;
+}
+
+.sc-proportion-heading {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 12px;
+    font-size: .84rem;
+}
+
+.sc-proportion-heading > span {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+}
+
+.sc-proportion-heading strong {
+    white-space: nowrap;
+    font-size: 1rem;
+}
+
+.sc-progress {
+    height: 11px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #edf1f7;
+}
+
+.sc-progress .progress-bar {
+    border-radius: 999px;
+    transition: width 1s cubic-bezier(.2,.7,.2,1);
+}
+
+.sc-progress-amber {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.sc-progress-green {
+    background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.sc-proportion-count {
+    margin: 9px 0 0;
+    color: #8a98ad;
+    font-size: .75rem;
+}
+
+.sc-insight-note {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+    padding: 15px;
+    border: 1px solid #dce7fb;
+    border-radius: 14px;
+    background: #f5f8ff;
+    color: #245bdb;
+}
+
+.sc-insight-note > i {
+    padding-top: 2px;
+    font-size: 1.1rem;
+}
+
+.sc-insight-note strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #344762;
+    font-size: .82rem;
+}
+
+.sc-insight-note p {
+    color: #64748b;
+    font-size: .77rem;
+    line-height: 1.65;
+}
+
+.sc-text-link {
+    color: #245bdb;
+    font-size: .84rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.sc-text-link:hover { color: #1745ae; }
+
+.sc-table {
+    min-width: 650px;
+}
+
+.sc-table thead th {
+    padding: 15px 24px;
+    background: #f7f9fd;
+    color: #8492a8;
+    font-size: .69rem;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.sc-table tbody td {
+    padding: 17px 24px;
+    border-color: #edf1f7;
+    font-size: .84rem;
+}
+
+.sc-table tbody tr {
+    transition: background .18s ease;
+}
+
+.sc-table tbody tr:hover { background: #f8fbff; }
+
+.sc-date-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.sc-date-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    background: #edf4ff;
+    color: #245bdb;
+}
+
+.sc-table-value {
+    color: #344762;
+    font-weight: 700;
+}
+
+.sc-result-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.sc-pill-warning { background: #fff4d6; color: #946200; }
+.sc-pill-success { background: #dcfce9; color: #087653; }
+.sc-pill-warning .sc-status-dot { background: #f59e0b; }
+.sc-pill-success .sc-status-dot { background: #10b981; }
+
+.sc-empty-state {
+    padding: 42px 20px;
+    text-align: center;
+}
+
+.sc-empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 16px;
+    border-radius: 19px;
+    background: #edf4ff;
+    color: #245bdb;
+    font-size: 1.6rem;
+}
+
+.sc-empty-state p {
+    max-width: 360px;
+    margin: 0 auto 18px;
+    line-height: 1.7;
+}
+
+.sc-empty-table { padding: 46px 20px; }
+
+.sc-dashboard-disclaimer {
+    padding: 15px 17px;
+    border: 1px solid #e3eaf4;
+    border-radius: 14px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: .79rem;
+    line-height: 1.7;
+}
+
+@media (max-width: 767.98px) {
+    .sc-page-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .sc-page-header .btn { align-self: flex-start; }
+
+    .sc-overview-panel {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 19px;
+    }
+
+    .sc-panel-header { padding: 19px; }
+    .sc-chart-body { padding: 18px; }
+    .sc-proportion-body { padding: 23px 19px; }
+    .sc-doughnut-wrap { height: 260px; }
+    .sc-stat-card { padding: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sc-stat-card,
+    .sc-primary-btn,
+    .sc-table tbody tr,
+    .sc-progress .progress-bar {
+        transition: none !important;
+    }
+}
+</style>
+
+{% if total_predictions > 0 %}
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const canvas = document.getElementById("distributionChart");
+    if (!canvas || typeof Chart === "undefined") return;
+
+    const chartData = {
+        labels: [
+            "Terklasifikasi hipertensi",
+            "Tidak terklasifikasi hipertensi"
+        ],
+        datasets: [{
+            data: [
+                {{ hypertension_count|tojson }},
+                {{ non_hypertension_count|tojson }}
+            ],
+            backgroundColor: ["#f4b400", "#10b981"],
+            hoverBackgroundColor: ["#d99b00", "#07865f"],
+            borderColor: ["#ffffff", "#ffffff"],
+            borderWidth: 5,
+            hoverOffset: 9,
+            borderRadius: 5,
+            spacing: 3
+        }]
+    };
+
+    new Chart(canvas, {
+        type: "doughnut",
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "72%",
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 1100,
+                easing: "easeOutQuart"
+            },
+            plugins: {
+                legend: {
+                    position: "bottom",
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: "circle",
+                        padding: 20,
+                        color: "#52647d",
+                        font: { size: 12 }
+                    }
+                },
+                tooltip: {
+                    padding: 12,
+                    cornerRadius: 10,
+                    callbacks: {
+                        label: function(context) {
+                            const values = context.dataset.data;
+                            const total = values.reduce((sum, value) => sum + value, 0);
+                            const value = context.parsed || 0;
+                            const percentage = total > 0
+                                ? (value / total * 100).toFixed(2)
+                                : "0.00";
+                            return " " + context.label + ": " + value +
+                                   " (" + percentage + "%)";
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endif %}
+{% endblock %}

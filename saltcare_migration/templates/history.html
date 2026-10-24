@@ -1,0 +1,796 @@
+
+{% extends "base.html" %}
+
+{% block title %}Riwayat Prediksi | SaltCare{% endblock %}
+
+{% block content %}
+<section class="sc-history py-5">
+    <div class="container">
+
+        <header class="sc-history-header reveal mb-5">
+            <span class="sc-history-eyebrow">
+                <i class="bi bi-clock-history me-2"></i> PREDICTION ARCHIVE
+            </span>
+            <h1 class="display-5 fw-bold mt-3 mb-2">
+                Riwayat <span class="sc-history-gradient">Prediksi</span>
+            </h1>
+            <p class="text-secondary mb-0">
+                Telusuri hasil klasifikasi yang tersimpan di prototipe SaltCare.
+            </p>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show mb-4"
+                         role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close"
+                                data-bs-dismiss="alert" aria-label="Tutup"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- SUMMARY CARDS -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <article class="sh-stat-card reveal">
+                    <div class="sh-stat-icon sh-blue">
+                        <i class="bi bi-database"></i>
+                    </div>
+                    <p class="sh-stat-caption">SELURUH RIWAYAT</p>
+                    <div class="sh-stat-value">{{ total_records }}</div>
+                    <p class="sh-stat-label mb-0">Total catatan</p>
+                </article>
+            </div>
+            <div class="col-md-4">
+                <article class="sh-stat-card reveal">
+                    <div class="sh-stat-icon sh-amber">
+                        <i class="bi bi-heart-pulse"></i>
+                    </div>
+                    <p class="sh-stat-caption">KELAS MODEL</p>
+                    <div class="sh-stat-value sh-value-amber">{{ hypertension_count }}</div>
+                    <p class="sh-stat-label mb-0">Terklasifikasi hipertensi</p>
+                </article>
+            </div>
+            <div class="col-md-4">
+                <article class="sh-stat-card reveal">
+                    <div class="sh-stat-icon sh-green">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <p class="sh-stat-caption">KELAS MODEL</p>
+                    <div class="sh-stat-value sh-value-green">{{ non_hypertension_count }}</div>
+                    <p class="sh-stat-label mb-0">Tidak terklasifikasi hipertensi</p>
+                </article>
+            </div>
+        </div>
+
+        <!-- HISTORY TABLE -->
+        <section class="sh-history-panel reveal">
+            <div class="sh-panel-header">
+                <div>
+                    <div class="sh-title-row">
+                        <span class="sh-heading-icon">
+                            <i class="bi bi-list-ul"></i>
+                        </span>
+                        <h2 class="h5 fw-bold mb-0">Daftar Riwayat</h2>
+                    </div>
+                    <p class="text-secondary small mt-2 mb-0">
+                        Cari catatan, filter kelas, atau buka detail data masukan.
+                    </p>
+                </div>
+                <a href="{{ url_for('prediction.prediction') }}"
+                   class="btn btn-primary sh-new-btn">
+                    <i class="bi bi-plus-lg me-1"></i> Prediksi Baru
+                </a>
+            </div>
+
+            {% if records %}
+                <div class="sh-filter-area">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-7">
+                            <label for="historySearch" class="form-label sh-filter-label">
+                                Cari riwayat
+                            </label>
+                            <div class="sh-search-box">
+                                <i class="bi bi-search"></i>
+                                <input type="search" id="historySearch"
+                                       class="form-control"
+                                       placeholder="Cari waktu, usia, konsumsi garam, atau fitur..."
+                                       autocomplete="off">
+                                <button type="button" id="clearHistorySearch"
+                                        class="sh-clear-search"
+                                        aria-label="Bersihkan pencarian"
+                                        title="Bersihkan pencarian">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-sm-7">
+                            <label for="historyClassFilter" class="form-label sh-filter-label">
+                                Kelas prediksi
+                            </label>
+                            <select id="historyClassFilter" class="form-select sh-filter-select">
+                                <option value="all">Semua kelas</option>
+                                <option value="1">Terklasifikasi hipertensi</option>
+                                <option value="0">Tidak hipertensi</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-sm-5">
+                            <button type="button" id="resetHistoryFilters"
+                                    class="btn btn-outline-secondary w-100 sh-reset-btn">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                    <div class="sh-results-count mt-3" aria-live="polite">
+                        Menampilkan <strong id="visibleHistoryCount">{{ records|length }}</strong>
+                        dari <strong>{{ records|length }}</strong> catatan pada halaman ini
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table sh-history-table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Usia</th>
+                                <th>Konsumsi Garam</th>
+                                <th>Hasil klasifikasi</th>
+                                <th>Probabilitas kelas</th>
+                                <th>Detail</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            {% for record in records %}
+                                {% set probabilities = record.probabilities or {} %}
+                                {% set probability = probabilities.get(record.prediction|string) %}
+                                {% if record.prediction == 1 %}
+                                    {% set class_label = 'Terklasifikasi hipertensi' %}
+                                {% else %}
+                                    {% set class_label = 'Tidak hipertensi' %}
+                                {% endif %}
+                                {% set search_blob = (record.created_at|string ~ ' ' ~ record.input_data|string ~ ' ' ~ class_label) %}
+
+                                <tr class="sh-history-row"
+                                    data-record-id="{{ record.id }}"
+                                    data-prediction="{{ record.prediction }}"
+                                    data-search="{{ search_blob|lower }}">
+                                    <td>
+                                        <div class="sh-date-cell">
+                                            <span class="sh-date-icon">
+                                                <i class="bi bi-calendar3"></i>
+                                            </span>
+                                            <span class="text-nowrap small">{{ record.created_at }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="fw-semibold">
+                                        {{ record.input_data.get('Age', '-') }}
+                                    </td>
+                                    <td class="fw-semibold">
+                                        {{ record.input_data.get('Salt_Intake', '-') }}
+                                    </td>
+                                    <td>
+                                        {% if record.prediction == 1 %}
+                                            <span class="sh-class-pill sh-pill-amber">
+                                                <span class="sh-class-dot"></span>
+                                                Terklasifikasi hipertensi
+                                            </span>
+                                        {% else %}
+                                            <span class="sh-class-pill sh-pill-green">
+                                                <span class="sh-class-dot"></span>
+                                                Tidak hipertensi
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="fw-bold">
+                                        {% if probability is not none %}
+                                            {{ "%.2f"|format(probability * 100) }}%
+                                        {% else %}
+                                            <span class="text-secondary">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm sh-detail-btn"
+                                                type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#detail-{{ record.id }}"
+                                                aria-expanded="false"
+                                                aria-controls="detail-{{ record.id }}">
+                                            <i class="bi bi-eye me-1"></i> Detail
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <form method="POST"
+                                              action="{{ url_for('prediction.delete_history', history_id=record.id) }}"
+                                              onsubmit="return confirm('Yakin ingin menghapus riwayat prediksi ini? Data yang dihapus tidak dapat dikembalikan.');">
+                                            <button type="submit"
+                                                    class="btn btn-sm sh-delete-btn"
+                                                    aria-label="Hapus riwayat {{ record.id }}"
+                                                    title="Hapus riwayat">
+                                                <i class="bi bi-trash3 me-1"></i> Hapus
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+
+                                <tr class="sh-detail-row"
+                                    data-record-id="{{ record.id }}"
+                                    data-parent-prediction="{{ record.prediction }}"
+                                    data-search="{{ search_blob|lower }}">
+                                    <td colspan="7" class="sh-detail-cell">
+                                        <div class="collapse" id="detail-{{ record.id }}">
+                                            <div class="sh-detail-panel">
+                                                <div class="sh-detail-heading">
+                                                    <span class="sh-detail-heading-icon">
+                                                        <i class="bi bi-clipboard2-data"></i>
+                                                    </span>
+                                                    <div>
+                                                        <h3 class="h6 fw-bold mb-1">Data masukan</h3>
+                                                        <p class="small text-secondary mb-0">
+                                                            Catatan #{{ record.id }} · {{ record.created_at }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row g-3 mt-2">
+                                                    {% for key, value in record.input_data.items() %}
+                                                        <div class="col-6 col-md-4 col-xl-3">
+                                                            <div class="sh-feature-detail">
+                                                                <span>{{ key }}</span>
+                                                                <strong>{{ value }}</strong>
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+
+                                                <div class="sh-model-meta mt-4">
+                                                    <span><i class="bi bi-cpu me-2"></i>Algoritma: Random Forest</span>
+                                                    {% if record.best_split %}
+                                                        <span><i class="bi bi-diagram-2 me-2"></i>Split: {{ record.best_split }}</span>
+                                                    {% endif %}
+                                                    {% if record.best_accuracy is not none %}
+                                                        <span>
+                                                            <i class="bi bi-bullseye me-2"></i>
+                                                            Akurasi evaluasi tersimpan:
+                                                            {{ "%.2f"|format(record.best_accuracy * 100) }}%
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+
+                                                {% if record.probabilities %}
+                                                    <h4 class="sh-probability-title">Probabilitas setiap kelas</h4>
+                                                    <div class="row g-3">
+                                                        {% for class_id, prob in record.probabilities.items() %}
+                                                            <div class="col-md-6">
+                                                                <div class="sh-probability-card">
+                                                                    <span>
+                                                                        {% if class_id == "1" %}
+                                                                            Terklasifikasi hipertensi
+                                                                        {% elif class_id == "0" %}
+                                                                            Tidak hipertensi
+                                                                        {% else %}
+                                                                            Kelas {{ class_id }}
+                                                                        {% endif %}
+                                                                    </span>
+                                                                    <strong>{{ "%.2f"|format(prob * 100) }}%</strong>
+                                                                </div>
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="historyNoMatch" class="sh-no-match" hidden>
+                    <div class="sh-no-match-icon"><i class="bi bi-search"></i></div>
+                    <h3 class="h6 fw-bold">Tidak ada riwayat yang cocok</h3>
+                    <p class="small text-secondary mb-3">
+                        Coba kata kunci lain atau ubah filter kelas prediksi.
+                    </p>
+                    <button type="button" id="resetHistoryFromEmpty"
+                            class="btn btn-outline-primary btn-sm">
+                        Reset pencarian
+                    </button>
+                </div>
+            {% else %}
+                <div class="sh-empty-state">
+                    <div class="sh-empty-icon"><i class="bi bi-inbox"></i></div>
+                    <h3 class="h5 fw-bold">Belum ada riwayat prediksi</h3>
+                    <p class="text-secondary">
+                        Lakukan prediksi terlebih dahulu agar hasilnya tersimpan di sini.
+                    </p>
+                    <a href="{{ url_for('prediction.prediction') }}"
+                       class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i> Mulai Prediksi
+                    </a>
+                </div>
+            {% endif %}
+        </section>
+
+        <div class="sh-history-disclaimer mt-4">
+            <i class="bi bi-info-circle me-2"></i>
+            Riwayat ini merupakan data prototipe lokal. Hindari memasukkan
+            identitas pribadi yang tidak diperlukan. Hasil klasifikasi dan
+            probabilitas model bukan diagnosis medis.
+        </div>
+    </div>
+</section>
+
+<style>
+.sc-history {
+    --sh-border: #e5ebf5;
+    --sh-muted: #64748b;
+    color: #172b4d;
+}
+
+.sc-history-gradient {
+    color: #245bdb;
+    background: linear-gradient(110deg, #245bdb, #10a99b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.sc-history-header { text-align: center; }
+
+.sc-history-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 14px;
+    border: 1px solid #dce7fb;
+    border-radius: 999px;
+    background: #edf4ff;
+    color: #245bdb;
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+
+.sh-stat-card,
+.sh-history-panel {
+    overflow: hidden;
+    height: 100%;
+    border: 1px solid var(--sh-border);
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 12px 32px rgba(28, 55, 100, .055);
+}
+
+.sh-stat-card {
+    padding: 23px;
+    transition: transform .22s ease, box-shadow .22s ease;
+}
+
+.sh-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 36px rgba(28, 55, 100, .09);
+}
+
+.sh-stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    margin-bottom: 18px;
+    border-radius: 15px;
+    font-size: 1.3rem;
+}
+
+.sh-blue { color: #245bdb; background: #edf4ff; }
+.sh-amber { color: #b77908; background: #fff4d6; }
+.sh-green { color: #07865f; background: #dcfce9; }
+
+.sh-stat-caption {
+    margin-bottom: 6px;
+    color: #8a98ad;
+    font-size: .65rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+
+.sh-stat-value {
+    font-size: 2.3rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -.04em;
+}
+
+.sh-value-amber { color: #b77908; }
+.sh-value-green { color: #07865f; }
+
+.sh-stat-label {
+    margin-top: 5px;
+    color: #64748b;
+    font-size: .84rem;
+}
+
+.sh-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    border-bottom: 1px solid var(--sh-border);
+}
+
+.sh-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sh-heading-icon,
+.sh-date-icon,
+.sh-detail-heading-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 13px;
+    background: #edf4ff;
+    color: #245bdb;
+}
+
+.sh-heading-icon { width: 43px; height: 43px; font-size: 1.2rem; }
+
+.sh-new-btn {
+    padding: 11px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.sh-filter-area {
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid var(--sh-border);
+    background: #fbfcff;
+}
+
+.sh-filter-label {
+    color: #475569;
+    font-size: .78rem;
+    font-weight: 700;
+}
+
+.sh-search-box { position: relative; }
+
+.sh-search-box > i {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    z-index: 2;
+    color: #8291a7;
+    transform: translateY(-50%);
+}
+
+.sh-search-box .form-control {
+    min-height: 45px;
+    padding: 10px 42px 10px 40px;
+    border: 1px solid #dfe7f2;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: none;
+}
+
+.sh-search-box .form-control:focus,
+.sh-filter-select:focus {
+    border-color: #8eb3ff;
+    box-shadow: 0 0 0 3px rgba(36, 91, 219, .09);
+}
+
+.sh-clear-search {
+    position: absolute;
+    top: 50%;
+    right: 9px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #64748b;
+    transform: translateY(-50%);
+}
+
+.sh-clear-search.is-visible { display: flex; }
+.sh-clear-search:hover { background: #edf2fa; }
+
+.sh-filter-select {
+    min-height: 45px;
+    border: 1px solid #dfe7f2;
+    border-radius: 12px;
+    box-shadow: none;
+}
+
+.sh-reset-btn {
+    min-height: 45px;
+    border-radius: 12px;
+    font-weight: 700;
+}
+
+.sh-results-count {
+    color: #64748b;
+    font-size: .77rem;
+}
+
+.sh-results-count strong { color: #245bdb; }
+
+.sh-history-table { min-width: 1030px; }
+
+.sh-history-table thead th {
+    padding: 15px 17px;
+    background: #f6f8fc;
+    color: #8291a7;
+    font-size: .67rem;
+    font-weight: 800;
+    letter-spacing: .055em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.sh-history-table tbody tr.sh-history-row > td {
+    padding: 16px 17px;
+    border-color: #edf1f7;
+    font-size: .82rem;
+}
+
+.sh-history-row:hover { background: #f8fbff; }
+
+.sh-date-cell {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.sh-date-icon { width: 32px; height: 32px; }
+
+.sh-class-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 9px;
+    border-radius: 999px;
+    font-size: .69rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.sh-pill-amber { color: #946200; background: #fff4d6; }
+.sh-pill-green { color: #087653; background: #dcfce9; }
+
+.sh-class-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.sh-detail-btn {
+    border: 1px solid #dce7fb;
+    border-radius: 9px;
+    color: #245bdb;
+    background: #f5f8ff;
+    white-space: nowrap;
+}
+
+.sh-detail-btn:hover { background: #e8f0ff; color: #1745ae; }
+
+.sh-delete-btn {
+    border: 1px solid #f3d6d6;
+    border-radius: 9px;
+    color: #b42332;
+    background: #fff8f8;
+    white-space: nowrap;
+}
+
+.sh-delete-btn:hover { color: #fff; background: #b42332; }
+
+.sh-detail-cell {
+    padding: 0 17px !important;
+    border-top: 0 !important;
+}
+
+.sh-detail-panel {
+    margin: 0 0 14px;
+    padding: 22px;
+    border: 1px solid #e2eaf5;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #f8faff, #f4fbfa);
+}
+
+.sh-detail-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sh-detail-heading-icon { width: 42px; height: 42px; font-size: 1.1rem; }
+
+.sh-feature-detail {
+    height: 100%;
+    padding: 12px 14px;
+    border: 1px solid #e4eaf3;
+    border-radius: 12px;
+    background: rgba(255,255,255,.85);
+}
+
+.sh-feature-detail span {
+    display: block;
+    margin-bottom: 5px;
+    color: #64748b;
+    font-size: .72rem;
+}
+
+.sh-feature-detail strong {
+    display: block;
+    color: #243852;
+    font-size: .88rem;
+    overflow-wrap: anywhere;
+}
+
+.sh-model-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    padding: 14px 0;
+    border-top: 1px solid #e0e8f3;
+    color: #64748b;
+    font-size: .77rem;
+}
+
+.sh-probability-title {
+    margin: 8px 0 12px;
+    font-size: .87rem;
+    font-weight: 800;
+}
+
+.sh-probability-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid #e4eaf3;
+    border-radius: 11px;
+    background: #fff;
+    font-size: .78rem;
+}
+
+.sh-probability-card strong { white-space: nowrap; color: #245bdb; }
+
+.sh-empty-state,
+.sh-no-match {
+    padding: 48px 20px;
+    text-align: center;
+}
+
+.sh-empty-icon,
+.sh-no-match-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 17px;
+    border-radius: 19px;
+    background: #edf4ff;
+    color: #245bdb;
+    font-size: 1.6rem;
+}
+
+.sh-empty-state p,
+.sh-no-match p { line-height: 1.7; }
+
+.sh-no-match[hidden] { display: none !important; }
+
+.sh-history-disclaimer {
+    padding: 15px 17px;
+    border: 1px solid #e3eaf4;
+    border-radius: 14px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: .79rem;
+    line-height: 1.7;
+}
+
+@media (max-width: 767.98px) {
+    .sh-panel-header {
+        align-items: stretch;
+        flex-direction: column;
+        padding: 19px;
+    }
+
+    .sh-new-btn { align-self: flex-start; }
+    .sh-filter-area { padding: 19px; }
+    .sh-stat-card { padding: 19px; }
+    .sh-detail-panel { padding: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sh-stat-card { transition: none !important; }
+}
+</style>
+
+{% if records %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("historySearch");
+    const classFilter = document.getElementById("historyClassFilter");
+    const clearButton = document.getElementById("clearHistorySearch");
+    const resetButton = document.getElementById("resetHistoryFilters");
+    const resetEmptyButton = document.getElementById("resetHistoryFromEmpty");
+    const countElement = document.getElementById("visibleHistoryCount");
+    const noMatch = document.getElementById("historyNoMatch");
+    const primaryRows = Array.from(document.querySelectorAll(".sh-history-row"));
+    const detailRows = Array.from(document.querySelectorAll(".sh-detail-row"));
+
+    function applyFilters() {
+        const query = (searchInput.value || "").trim().toLocaleLowerCase();
+        const selectedClass = classFilter.value;
+        let visibleCount = 0;
+
+        primaryRows.forEach(function (row) {
+            const recordId = row.dataset.recordId;
+            const detailRow = detailRows.find(function (item) {
+                return item.dataset.recordId === recordId;
+            });
+
+            const searchText = row.dataset.search || "";
+            const classMatches = selectedClass === "all" ||
+                row.dataset.prediction === selectedClass;
+            const textMatches = !query || searchText.includes(query);
+            const isVisible = classMatches && textMatches;
+
+            row.hidden = !isVisible;
+            if (detailRow) {
+                detailRow.hidden = !isVisible;
+                if (!isVisible) {
+                    const collapse = detailRow.querySelector(".collapse");
+                    if (collapse && window.bootstrap) {
+                        const instance = bootstrap.Collapse.getInstance(collapse);
+                        if (instance) instance.hide();
+                    }
+                }
+            }
+
+            if (isVisible) visibleCount += 1;
+        });
+
+        countElement.textContent = visibleCount;
+        noMatch.hidden = visibleCount !== 0;
+        clearButton.classList.toggle("is-visible", searchInput.value.length > 0);
+    }
+
+    function resetFilters() {
+        searchInput.value = "";
+        classFilter.value = "all";
+        applyFilters();
+    }
+
+    searchInput.addEventListener("input", applyFilters);
+    classFilter.addEventListener("change", applyFilters);
+    clearButton.addEventListener("click", function () {
+        searchInput.value = "";
+        applyFilters();
+        searchInput.focus();
+    });
+    resetButton.addEventListener("click", resetFilters);
+    if (resetEmptyButton) {
+        resetEmptyButton.addEventListener("click", resetFilters);
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,470 @@
+
+{% extends "base.html" %}
+
+{% block title %}Prediksi Hipertensi | SaltCare{% endblock %}
+
+{% block content %}
+<section class="prediction-page py-5">
+    <div class="container">
+
+        <!-- Header halaman -->
+        <div class="text-center mb-5 reveal">
+            <span class="badge rounded-pill text-bg-light border px-3 py-2 mb-3">
+                <i class="bi bi-heart-pulse me-1"></i>
+                SaltCare Prediction
+            </span>
+
+            <h1 class="display-5 fw-bold mb-3">
+                Pemeriksaan Risiko <span class="text-primary">Hipertensi</span>
+            </h1>
+
+            <p class="text-secondary mx-auto" style="max-width: 700px;">
+                Lengkapi informasi berikut untuk memperoleh hasil klasifikasi
+                berdasarkan model Random Forest yang digunakan pada prototipe SaltCare.
+            </p>
+        </div>
+
+        <!-- Pemberitahuan dari Flask -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show"
+                             role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close"
+                                    data-bs-dismiss="alert"
+                                    aria-label="Tutup"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="row g-4 align-items-start">
+
+            <!-- Form utama -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4 p-md-5">
+
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <div class="rounded-3 bg-primary-subtle text-primary p-3">
+                                <i class="bi bi-clipboard2-pulse fs-4"></i>
+                            </div>
+                            <div>
+                                <h2 class="h4 fw-bold mb-1">
+                                    Data Pengguna
+                                </h2>
+                                <p class="text-secondary small mb-0">
+                                    Semua kolom wajib diisi.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="progress mb-4" style="height: 6px;"
+                             role="progressbar"
+                             aria-label="Kelengkapan formulir"
+                             aria-valuemin="0"
+                             aria-valuemax="100"
+                             aria-valuenow="0">
+                            <div id="formProgress"
+                                 class="progress-bar"
+                                 style="width: 0%;"></div>
+                        </div>
+                        <p id="formProgressText"
+                           class="small text-secondary mb-4">
+                            0 dari 10 kolom terisi
+                        </p>
+
+                        <form
+                            id="predictionForm"
+                            action="{{ url_for('prediction.prediction') }}"
+                            method="POST"
+                        >
+                            <div class="row g-4">
+
+                                <!-- 1. Usia -->
+                                <div class="col-md-6">
+                                    <label for="Age" class="form-label fw-semibold">
+                                        Usia <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <input
+                                            type="number"
+                                            class="form-control"
+                                            id="Age"
+                                            name="Age"
+                                            min="1"
+                                            max="120"
+                                            step="1"
+                                            value="{{ request.form.get('Age', '') }}"
+                                            placeholder="Contoh: 25"
+                                            required
+                                        >
+                                        <span class="input-group-text">tahun</span>
+                                    </div>
+                                </div>
+
+                                <!-- 2. Konsumsi garam -->
+                                <div class="col-md-6">
+                                    <label for="Salt_Intake" class="form-label fw-semibold">
+                                        Konsumsi Garam <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <input
+                                            type="number"
+                                            class="form-control"
+                                            id="Salt_Intake"
+                                            name="Salt_Intake"
+                                            min="0"
+                                            max="100"
+                                            step="any"
+                                            value="{{ request.form.get('Salt_Intake', '') }}"
+                                            placeholder="Masukkan nilai"
+                                            required
+                                        >
+                                        <span class="input-group-text">dataset</span>
+                                    </div>
+                                    <div class="form-text">
+                                        Gunakan satuan yang sama dengan dataset pelatihan.
+                                    </div>
+                                </div>
+
+                                <!-- 3. Skor stres -->
+                                <div class="col-md-6">
+                                    <label for="Stress_Score" class="form-label fw-semibold">
+                                        Skor Stres <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select"
+                                            id="Stress_Score"
+                                            name="Stress_Score"
+                                            required>
+                                        <option value="">Pilih skor (1–10)</option>
+                                        {% for score in range(1, 11) %}
+                                            <option value="{{ score }}"
+                                                {% if request.form.get('Stress_Score') == score|string %}selected{% endif %}>
+                                                {{ score }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <!-- 4. Riwayat tekanan darah -->
+                                <div class="col-md-6">
+                                    <label for="BP_History" class="form-label fw-semibold">
+                                        Riwayat Tekanan Darah <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select"
+                                            id="BP_History"
+                                            name="BP_History"
+                                            required>
+                                        <option value="">Pilih kategori</option>
+                                        {% for option in ['Normal', 'Prehypertension', 'Hypertension'] %}
+                                            <option value="{{ option }}"
+                                                {% if request.form.get('BP_History') == option %}selected{% endif %}>
+                                                {% if option == 'Normal' %}
+                                                    Normal
+                                                {% elif option == 'Prehypertension' %}
+                                                    Prahipertensi (Prehypertension)
+                                                {% else %}
+                                                    Hipertensi (Hypertension)
+                                                {% endif %}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <!-- 5. Durasi tidur -->
+                                <div class="col-md-6">
+                                    <label for="Sleep_Duration" class="form-label fw-semibold">
+                                        Durasi Tidur <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <input
+                                            type="number"
+                                            class="form-control"
+                                            id="Sleep_Duration"
+                                            name="Sleep_Duration"
+                                            min="0"
+                                            max="24"
+                                            step="any"
+                                            value="{{ request.form.get('Sleep_Duration', '') }}"
+                                            placeholder="Contoh: 7"
+                                            required
+                                        >
+                                        <span class="input-group-text">jam/hari</span>
+                                    </div>
+                                </div>
+
+                                <!-- 6. BMI -->
+                                <div class="col-md-6">
+                                    <label for="BMI" class="form-label fw-semibold">
+                                        Indeks Massa Tubuh (BMI)
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <input
+                                            type="number"
+                                            class="form-control"
+                                            id="BMI"
+                                            name="BMI"
+                                            min="1"
+                                            max="100"
+                                            step="any"
+                                            value="{{ request.form.get('BMI', '') }}"
+                                            placeholder="Contoh: 23.5"
+                                            required
+                                        >
+                                        <span class="input-group-text">kg/m²</span>
+                                    </div>
+                                </div>
+
+                                <!-- 7. Penggunaan obat -->
+                                <div class="col-md-6">
+                                    <label for="Medication" class="form-label fw-semibold">
+                                        Penggunaan Obat <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select"
+                                            id="Medication"
+                                            name="Medication"
+                                            required>
+                                        <option value="">Pilih kategori</option>
+                                        {% for option in ['None', 'ACE Inhibitor', 'Beta Blocker', 'Diuretic', 'Other'] %}
+                                            <option value="{{ option }}"
+                                                {% if request.form.get('Medication') == option %}selected{% endif %}>
+                                                {% if option == 'None' %}
+                                                    Tidak menggunakan obat (None)
+                                                {% elif option == 'Other' %}
+                                                    Obat lainnya (Other)
+                                                {% else %}
+                                                    {{ option }}
+                                                {% endif %}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">
+                                        Pilih None jika sesuai dengan kategori data yang tersedia.
+                                    </div>
+                                </div>
+
+                                <!-- 8. Riwayat keluarga -->
+                                <div class="col-md-6">
+                                    <label for="Family_History" class="form-label fw-semibold">
+                                        Riwayat Keluarga
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select"
+                                            id="Family_History"
+                                            name="Family_History"
+                                            required>
+                                        <option value="">Pilih jawaban</option>
+                                        <option value="No"
+                                            {% if request.form.get('Family_History') == 'No' %}selected{% endif %}>
+                                            Tidak ada (No)
+                                        </option>
+                                        <option value="Yes"
+                                            {% if request.form.get('Family_History') == 'Yes' %}selected{% endif %}>
+                                            Ada (Yes)
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- 9. Aktivitas olahraga -->
+                                <div class="col-md-6">
+                                    <label for="Exercise_Level" class="form-label fw-semibold">
+                                        Tingkat Aktivitas Olahraga
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select"
+                                            id="Exercise_Level"
+                                            name="Exercise_Level"
+                                            required>
+                                        <option value="">Pilih kategori</option>
+                                        <option value="Low"
+                                            {% if request.form.get('Exercise_Level') == 'Low' %}selected{% endif %}>
+                                            Rendah (Low)
+                                        </option>
+                                        <option value="Moderate"
+                                            {% if request.form.get('Exercise_Level') == 'Moderate' %}selected{% endif %}>
+                                            Sedang (Moderate)
+                                        </option>
+                                        <option value="High"
+                                            {% if request.form.get('Exercise_Level') == 'High' %}selected{% endif %}>
+                                            Tinggi (High)
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- 10. Status merokok -->
+                                <div class="col-md-6">
+                                    <label for="Smoking_Status" class="form-label fw-semibold">
+                                        Status Merokok <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select"
+                                            id="Smoking_Status"
+                                            name="Smoking_Status"
+                                            required>
+                                        <option value="">Pilih kategori</option>
+                                        <option value="Non-Smoker"
+                                            {% if request.form.get('Smoking_Status') == 'Non-Smoker' %}selected{% endif %}>
+                                            Tidak merokok (Non-Smoker)
+                                        </option>
+                                        <option value="Smoker"
+                                            {% if request.form.get('Smoking_Status') == 'Smoker' %}selected{% endif %}>
+                                            Merokok (Smoker)
+                                        </option>
+                                    </select>
+                                </div>
+
+                            </div>
+
+                            <!-- Tombol aksi -->
+                            <div class="d-flex flex-column flex-sm-row gap-3 mt-5">
+                                <button type="submit"
+                                        id="submitPrediction"
+                                        class="btn btn-primary btn-lg flex-grow-1">
+                                    <i class="bi bi-activity me-2"></i>
+                                    Jalankan Prediksi
+                                </button>
+
+                                <button type="reset"
+                                        class="btn btn-outline-secondary btn-lg">
+                                    <i class="bi bi-arrow-counterclockwise me-2"></i>
+                                    Reset Form
+                                </button>
+                            </div>
+
+                            <p class="small text-secondary mt-3 mb-0">
+                                <i class="bi bi-shield-check me-1"></i>
+                                Data ini diproses untuk menampilkan hasil klasifikasi prototipe.
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel informasi -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <div class="rounded-3 bg-info-subtle text-info-emphasis d-inline-flex p-3 mb-3">
+                            <i class="bi bi-info-circle fs-4"></i>
+                        </div>
+                        <h2 class="h5 fw-bold">Tentang Prediksi</h2>
+                        <p class="text-secondary small mb-3">
+                            SaltCare menggunakan model Random Forest yang dilatih
+                            menggunakan dataset hipertensi untuk mengklasifikasikan
+                            status berdasarkan sepuluh fitur masukan.
+                        </p>
+                        <ul class="small text-secondary ps-3 mb-0">
+                            <li class="mb-2">Isi semua kolom berdasarkan informasi yang tersedia.</li>
+                            <li class="mb-2">Pastikan satuan konsumsi garam mengikuti dataset.</li>
+                            <li>Hasil mengikuti pola yang dipelajari model, bukan kepastian klinis.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <div class="rounded-3 bg-success-subtle text-success-emphasis d-inline-flex p-3 mb-3">
+                            <i class="bi bi-list-check fs-4"></i>
+                        </div>
+                        <h2 class="h5 fw-bold">Fitur yang Digunakan</h2>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for item in [
+                                'Usia',
+                                'Konsumsi Garam',
+                                'Skor Stres',
+                                'Riwayat Tekanan Darah',
+                                'Durasi Tidur',
+                                'BMI',
+                                'Penggunaan Obat',
+                                'Riwayat Keluarga',
+                                'Aktivitas Olahraga',
+                                'Status Merokok'
+                            ] %}
+                                <span class="badge rounded-pill text-bg-light border fw-normal px-3 py-2">
+                                    {{ item }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning border-0 rounded-4 small mb-0">
+                    <div class="d-flex gap-2">
+                        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                        <div>
+                            <strong>Informasi penting</strong>
+                            <p class="mb-0 mt-1">
+                                SaltCare merupakan prototipe penelitian dan bukan
+                                pengganti pemeriksaan tenaga kesehatan. Jangan
+                                menggunakan hasilnya sebagai dasar diagnosis atau
+                                perubahan pengobatan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("predictionForm");
+    if (!form) return;
+
+    const fields = Array.from(form.querySelectorAll("input, select"));
+    const progressBar = document.getElementById("formProgress");
+    const progressText = document.getElementById("formProgressText");
+    const progressContainer = progressBar?.closest(".progress");
+    const resetButton = form.querySelector('button[type="reset"]');
+
+    function updateProgress() {
+        const filled = fields.filter(function (field) {
+            return field.value.trim() !== "";
+        }).length;
+
+        const percent = Math.round((filled / fields.length) * 100);
+
+        if (progressBar) {
+            progressBar.style.width = percent + "%";
+        }
+
+        if (progressText) {
+            progressText.textContent =
+                filled + " dari " + fields.length + " kolom terisi";
+        }
+
+        if (progressContainer) {
+            progressContainer.setAttribute("aria-valuenow", percent);
+        }
+    }
+
+    fields.forEach(function (field) {
+        field.addEventListener("input", updateProgress);
+        field.addEventListener("change", updateProgress);
+    });
+
+    if (resetButton) {
+        resetButton.addEventListener("click", function () {
+            window.setTimeout(updateProgress, 0);
+        });
+    }
+
+    form.addEventListener("submit", function (event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            form.reportValidity();
+        }
+    });
+
+    updateProgress();
+});
+</script>
+{% endblock %}

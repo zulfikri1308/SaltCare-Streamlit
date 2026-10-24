@@ -1,0 +1,668 @@
+
+{% extends "base.html" %}
+
+{% block title %}Hasil Prediksi | SaltCare{% endblock %}
+
+{% block content %}
+<section class="result-page py-5">
+    <div class="container">
+
+        <!-- HEADER -->
+        <header class="page-heading text-center mb-5 reveal">
+            <span class="section-eyebrow">
+                <i class="bi bi-cpu me-2"></i> SALTCARE · AI ANALYTICS
+            </span>
+            <h1 class="display-5 fw-bold mt-3 mb-3">
+                Laporan <span class="text-gradient">Hasil Prediksi</span>
+            </h1>
+            <p class="text-secondary mx-auto mb-0" style="max-width: 680px;">
+                Ringkasan hasil klasifikasi Random Forest berdasarkan
+                sepuluh fitur masukan yang diproses oleh sistem.
+            </p>
+        </header>
+
+        <!-- FLASH MESSAGES -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show mb-4"
+                         role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close"
+                                data-bs-dismiss="alert" aria-label="Tutup"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- ACTION BAR -->
+        <div class="result-toolbar d-flex flex-wrap justify-content-between
+                    align-items-center gap-3 mb-4">
+            <div class="d-flex align-items-center gap-2 text-secondary small">
+                <i class="bi bi-shield-check text-primary fs-5"></i>
+                <span>Laporan klasifikasi individual</span>
+            </div>
+            <button type="button" class="btn btn-primary"
+                    onclick="window.print()">
+                <i class="bi bi-file-earmark-pdf me-2"></i>
+                Ekspor / Simpan PDF
+            </button>
+        </div>
+
+        <!-- MAIN RESULT -->
+        <div class="result-card analytics-card mb-4 reveal">
+            <div class="result-card-accent
+                {% if result.prediction == 1 %}result-accent-warning
+                {% else %}result-accent-success{% endif %}">
+            </div>
+
+            <div class="row g-0 align-items-stretch">
+                <div class="col-lg-7">
+                    <div class="p-4 p-md-5 h-100">
+                        <span class="status-badge mb-4
+                            {% if result.prediction == 1 %}status-warning
+                            {% else %}status-success{% endif %}">
+                            <span class="status-dot"></span>
+                            Hasil klasifikasi model
+                        </span>
+
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <div class="result-icon
+                                {% if result.prediction == 1 %}result-icon-warning
+                                {% else %}result-icon-success{% endif %}">
+                                {% if result.prediction == 1 %}
+                                    <i class="bi bi-heart-pulse-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-shield-check"></i>
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <p class="text-secondary small mb-1">
+                                    Kelas prediksi
+                                </p>
+                                <h2 class="result-label mb-0
+                                    {% if result.prediction == 1 %}result-label-warning
+                                    {% else %}result-label-success{% endif %}">
+                                    {{ result.prediction_label }}
+                                </h2>
+                            </div>
+                        </div>
+
+                        {% if result.prediction == 1 %}
+                            <p class="text-secondary mb-0 result-description">
+                                Berdasarkan pola yang dipelajari dari dataset,
+                                data masukan ini diklasifikasikan ke dalam
+                                kelas hipertensi oleh model.
+                            </p>
+                        {% else %}
+                            <p class="text-secondary mb-0 result-description">
+                                Berdasarkan pola yang dipelajari dari dataset,
+                                data masukan ini diklasifikasikan ke dalam
+                                kelas tidak hipertensi oleh model. Hasil ini
+                                tidak menjamin seseorang bebas dari hipertensi.
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-lg-5 result-side-panel">
+                    <div class="p-4 p-md-5 h-100 d-flex flex-column justify-content-center">
+                        <div class="result-mini-label mb-2">
+                            <i class="bi bi-cpu me-2"></i>MODEL YANG DIGUNAKAN
+                        </div>
+                        <h3 class="h4 fw-bold mb-3">Random Forest</h3>
+
+                        <div class="result-meta-row">
+                            <span>Jumlah fitur masukan</span>
+                            <strong>{{ input_data|length }} fitur</strong>
+                        </div>
+                        <div class="result-meta-row">
+                            <span>Split terpilih</span>
+                            <strong>{{ result.best_split or 'Tidak tersedia' }}</strong>
+                        </div>
+                        <div class="result-meta-row">
+                            <span>Akurasi evaluasi tersimpan</span>
+                            <strong>
+                                {% if result.best_accuracy is not none %}
+                                    {{ "%.2f"|format(result.best_accuracy * 100) }}%
+                                {% else %}
+                                    Tidak tersedia
+                                {% endif %}
+                            </strong>
+                        </div>
+
+                        <p class="small text-secondary mt-3 mb-0">
+                            Akurasi evaluasi bukan jaminan ketepatan
+                            prediksi pada setiap individu.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-disclaimer">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                Hasil ini merupakan keluaran model penelitian, bukan
+                diagnosis medis atau pengganti pemeriksaan tenaga kesehatan.
+            </div>
+        </div>
+
+        <!-- CLASS PROBABILITIES -->
+        {% if result.probabilities %}
+        <section class="analytics-card mb-4 reveal">
+            <div class="card-section-heading">
+                <div class="section-icon">
+                    <i class="bi bi-bar-chart-line"></i>
+                </div>
+                <div>
+                    <h2 class="h5 fw-bold mb-1">Probabilitas Kelas Model</h2>
+                    <p class="text-secondary small mb-0">
+                        Nilai probabilitas yang dihasilkan model untuk
+                        masing-masing kelas.
+                    </p>
+                </div>
+            </div>
+
+            <div class="p-4 p-md-5 pt-3">
+                {% for class_id, probability in result.probabilities.items() %}
+                    <div class="probability-item mb-4">
+                        <div class="d-flex justify-content-between
+                                    align-items-center gap-3 mb-2">
+                            <span class="fw-semibold">
+                                {% if class_id == '1' %}
+                                    Terklasifikasi hipertensi
+                                {% elif class_id == '0' %}
+                                    Terklasifikasi tidak hipertensi
+                                {% else %}
+                                    Kelas {{ class_id }}
+                                {% endif %}
+                            </span>
+                            <strong class="probability-value">
+                                {{ "%.2f"|format(probability * 100) }}%
+                            </strong>
+                        </div>
+
+                        <div class="progress probability-progress"
+                             role="progressbar"
+                             aria-valuenow="{{ (probability * 100)|round|int }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100"
+                             aria-label="Probabilitas kelas {{ class_id }}">
+                            <div class="progress-bar
+                                {% if class_id == '1' %}probability-warning
+                                {% else %}probability-success{% endif %}"
+                                 style="width: {{ probability * 100 }}%;">
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <div class="notice-panel">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Probabilitas model bukan ukuran pasti kemungkinan klinis
+                    seseorang mengalami hipertensi. Nilainya bergantung pada
+                    model, dataset, dan karakteristik data masukan.
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- INPUT SUMMARY -->
+        <section class="analytics-card mb-4 reveal">
+            <div class="card-section-heading">
+                <div class="section-icon">
+                    <i class="bi bi-clipboard2-data"></i>
+                </div>
+                <div>
+                    <h2 class="h5 fw-bold mb-1">Ringkasan Data Masukan</h2>
+                    <p class="text-secondary small mb-0">
+                        Nilai fitur yang digunakan untuk menghasilkan
+                        klasifikasi ini.
+                    </p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table input-summary-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Fitur</th>
+                            <th scope="col" class="text-end">Nilai masukan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for name, value in input_data.items() %}
+                        <tr>
+                            <th scope="row">
+                                {% if name == 'Age' %}
+                                    Usia
+                                {% elif name == 'Salt_Intake' %}
+                                    Konsumsi Garam
+                                {% elif name == 'Stress_Score' %}
+                                    Skor Stres
+                                {% elif name == 'BP_History' %}
+                                    Riwayat Tekanan Darah
+                                {% elif name == 'Sleep_Duration' %}
+                                    Durasi Tidur
+                                {% elif name == 'BMI' %}
+                                    Indeks Massa Tubuh (BMI)
+                                {% elif name == 'Medication' %}
+                                    Penggunaan Obat
+                                {% elif name == 'Family_History' %}
+                                    Riwayat Keluarga
+                                {% elif name == 'Exercise_Level' %}
+                                    Aktivitas Olahraga
+                                {% elif name == 'Smoking_Status' %}
+                                    Status Merokok
+                                {% else %}
+                                    {{ name }}
+                                {% endif %}
+                            </th>
+                            <td class="text-end fw-semibold">
+                                {% if name == 'Family_History' %}
+                                    {{ 'Ada' if value == 'Yes' else 'Tidak ada' }}
+                                {% elif name == 'Smoking_Status' %}
+                                    {{ 'Merokok' if value == 'Smoker' else 'Tidak merokok' }}
+                                {% elif name == 'Exercise_Level' %}
+                                    {% if value == 'Low' %}
+                                        Rendah
+                                    {% elif value == 'Moderate' %}
+                                        Sedang
+                                    {% else %}
+                                        Tinggi
+                                    {% endif %}
+                                {% elif name == 'BP_History' %}
+                                    {% if value == 'Normal' %}
+                                        Normal
+                                    {% elif value == 'Prehypertension' %}
+                                        Prahipertensi
+                                    {% else %}
+                                        Hipertensi
+                                    {% endif %}
+                                {% elif name == 'Medication' %}
+                                    {{ 'Tidak menggunakan obat' if value == 'None' else value }}
+                                {% else %}
+                                    {{ value }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ACTIONS -->
+        <div class="result-actions d-flex flex-wrap justify-content-center gap-3 mt-5">
+            <a href="{{ url_for('prediction.explanation') }}"
+               class="btn btn-primary btn-lg">
+                <i class="bi bi-graph-up-arrow me-2"></i>
+                Lihat Analisis SHAP
+            </a>
+
+            <a href="{{ url_for('prediction.prediction') }}"
+               class="btn btn-outline-primary btn-lg">
+                <i class="bi bi-arrow-repeat me-2"></i>
+                Prediksi Ulang
+            </a>
+
+            <a href="{{ url_for('prediction.history') }}"
+               class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-clock-history me-2"></i>
+                Riwayat Prediksi
+            </a>
+        </div>
+
+        <!-- MEDICAL DISCLAIMER -->
+        <div class="medical-disclaimer text-center mx-auto mt-5">
+            <i class="bi bi-heart-pulse me-1"></i>
+            SaltCare adalah prototipe penelitian berbasis dataset.
+            Hasil klasifikasi dan probabilitasnya tidak menggantikan
+            pengukuran tekanan darah, konsultasi, atau diagnosis oleh
+            tenaga kesehatan profesional.
+        </div>
+    </div>
+</section>
+
+<style>
+/* Gaya khusus halaman hasil */
+.result-page {
+    --result-border: #e5ebf5;
+    --result-muted: #64748b;
+    color: #172b4d;
+}
+
+.section-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 15px;
+    border: 1px solid #dce7fb;
+    border-radius: 999px;
+    background: #edf4ff;
+    color: #245bdb;
+    font-size: .76rem;
+    font-weight: 800;
+    letter-spacing: .09em;
+}
+
+.text-gradient {
+    color: #245bdb;
+    background: linear-gradient(115deg, #245bdb, #12a99b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.result-toolbar {
+    padding: 15px 18px;
+    border: 1px solid var(--result-border);
+    border-radius: 18px;
+    background: rgba(255,255,255,.88);
+}
+
+.result-card,
+.analytics-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--result-border);
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 14px 42px rgba(28, 55, 100, .07);
+}
+
+.result-card-accent {
+    height: 5px;
+    width: 100%;
+}
+
+.result-accent-warning {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.result-accent-success {
+    background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.result-icon {
+    display: flex;
+    width: 68px;
+    height: 68px;
+    flex: 0 0 68px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 21px;
+    font-size: 1.9rem;
+}
+
+.result-icon-warning {
+    color: #b77908;
+    background: #fff5d9;
+}
+
+.result-icon-success {
+    color: #07865f;
+    background: #dcfce9;
+}
+
+.result-label {
+    font-size: clamp(1.5rem, 3vw, 2.15rem);
+    font-weight: 800;
+    letter-spacing: -.035em;
+}
+
+.result-label-warning { color: #b77908; }
+.result-label-success { color: #07865f; }
+
+.result-description {
+    max-width: 550px;
+    line-height: 1.8;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 700;
+}
+
+.status-warning { color: #9a6700; background: #fff4d6; }
+.status-success { color: #087653; background: #dcfce9; }
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.result-side-panel {
+    background: linear-gradient(145deg, #f4f8ff, #f0fbfa);
+    border-left: 1px solid var(--result-border);
+}
+
+.result-mini-label {
+    color: #245bdb;
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+
+.result-meta-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 0;
+    border-bottom: 1px solid #dfe8f3;
+    font-size: .88rem;
+}
+
+.result-meta-row span { color: var(--result-muted); }
+.result-meta-row strong { text-align: right; }
+
+.result-disclaimer {
+    padding: 15px 20px;
+    border-top: 1px solid var(--result-border);
+    background: #f8fafc;
+    color: #52647d;
+    font-size: .86rem;
+    line-height: 1.7;
+}
+
+.card-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 25px 26px;
+    border-bottom: 1px solid var(--result-border);
+}
+
+.section-icon {
+    display: flex;
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    background: #edf4ff;
+    color: #245bdb;
+    font-size: 1.25rem;
+}
+
+.probability-value { color: #245bdb; }
+
+.probability-progress {
+    height: 12px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #edf1f7;
+}
+
+.probability-progress .progress-bar {
+    border-radius: 999px;
+    transition: width 1s cubic-bezier(.2,.7,.2,1);
+}
+
+.probability-warning {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.probability-success {
+    background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.notice-panel {
+    padding: 14px 16px;
+    border: 1px solid #dce7fb;
+    border-radius: 14px;
+    background: #f5f8ff;
+    color: #52647d;
+    font-size: .85rem;
+    line-height: 1.7;
+}
+
+.input-summary-table thead th {
+    padding: 15px 26px;
+    background: #f7f9fd;
+    color: #64748b;
+    font-size: .75rem;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.input-summary-table tbody th,
+.input-summary-table tbody td {
+    padding: 15px 26px;
+    border-color: #edf1f7;
+}
+
+.input-summary-table tbody th {
+    color: #64748b;
+    font-weight: 500;
+}
+
+.input-summary-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.result-actions .btn {
+    border-radius: 13px;
+    padding: 13px 19px;
+    font-weight: 700;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.result-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(36, 91, 219, .12);
+}
+
+.medical-disclaimer {
+    max-width: 760px;
+    color: #64748b;
+    font-size: .82rem;
+    line-height: 1.8;
+}
+
+@media (max-width: 767.98px) {
+    .result-side-panel {
+        border-left: 0;
+        border-top: 1px solid var(--result-border);
+    }
+
+    .card-section-heading {
+        padding: 20px;
+    }
+
+    .input-summary-table thead th,
+    .input-summary-table tbody th,
+    .input-summary-table tbody td {
+        padding: 13px 16px;
+    }
+
+    .result-toolbar {
+        align-items: stretch !important;
+    }
+
+    .result-toolbar .btn {
+        width: 100%;
+    }
+}
+
+/* PDF / cetak: sembunyikan navigasi, tampilkan isi laporan */
+@media print {
+    @page {
+        size: A4;
+        margin: 14mm;
+    }
+
+    body {
+        background: #fff !important;
+        color: #172b4d !important;
+        font-size: 10pt;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .navbar-salt,
+    .footer-salt,
+    .result-toolbar,
+    .result-actions,
+    .medical-disclaimer,
+    .btn,
+    .ambient,
+    .flash-messages {
+        display: none !important;
+    }
+
+    .result-page {
+        padding: 0 !important;
+    }
+
+    .result-page .container {
+        width: 100% !important;
+        max-width: none !important;
+        padding: 0 !important;
+    }
+
+    .page-heading {
+        margin-bottom: 18px !important;
+    }
+
+    .result-card,
+    .analytics-card {
+        break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #d8e0ec !important;
+        margin-bottom: 14px !important;
+    }
+
+    .result-card .p-4,
+    .result-card .p-md-5 {
+        padding: 18px !important;
+    }
+
+    .card-section-heading {
+        padding: 15px 18px !important;
+    }
+
+    .result-disclaimer {
+        color: #334155 !important;
+    }
+
+    .reveal {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    a {
+        color: inherit !important;
+        text-decoration: none !important;
+    }
+}
+</style>
+{% endblock %}

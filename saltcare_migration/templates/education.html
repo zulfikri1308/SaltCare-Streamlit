@@ -1,0 +1,321 @@
+
+{% extends "base.html" %}
+
+{% block title %}Edukasi Hipertensi | SaltCare{% endblock %}
+
+{% block content %}
+<section class="sc-education">
+    <style>
+        .sc-education {
+            --sc-blue: #2563eb;
+            --sc-ink: #17243b;
+            --sc-muted: #65748b;
+            color: var(--sc-ink);
+            padding: 44px 0 76px;
+        }
+        .sc-education .sc-container {
+            width: min(1120px, calc(100% - 32px));
+            margin: auto;
+        }
+        .sc-education .sc-eyebrow {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 13px; border-radius: 999px;
+            background: #eaf2ff; color: #1d4ed8;
+            font-size: .78rem; font-weight: 800; letter-spacing: .06em;
+        }
+        .sc-education .sc-title {
+            max-width: 780px; margin: 18px 0 14px;
+            font-size: clamp(2rem, 4vw, 3.25rem);
+            font-weight: 850; letter-spacing: -.045em; line-height: 1.12;
+        }
+        .sc-education .sc-gradient {
+            color: #2563eb;
+        }
+        .sc-education .sc-lead {
+            max-width: 740px; color: var(--sc-muted);
+            font-size: 1.04rem; line-height: 1.8;
+        }
+        .sc-education .sc-hero {
+            position: relative; overflow: hidden;
+            padding: clamp(26px, 5vw, 52px);
+            border: 1px solid #e4ebf5; border-radius: 28px;
+            background: linear-gradient(135deg, #fff 5%, #eef5ff 100%);
+            box-shadow: 0 18px 55px rgba(29, 61, 115, .07);
+        }
+        .sc-education .sc-hero::after {
+            content: ""; position: absolute; width: 230px; height: 230px;
+            border-radius: 50%; right: -90px; top: -95px;
+            background: rgba(96, 165, 250, .13); pointer-events: none;
+        }
+        .sc-education .sc-hero-icon {
+            display: inline-grid; place-items: center;
+            width: 62px; height: 62px; border-radius: 20px;
+            background: #dbeafe; color: #1d4ed8; font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+        .sc-education .sc-card {
+            height: 100%; padding: 25px;
+            border: 1px solid #e6edf5; border-radius: 22px;
+            background: #fff; box-shadow: 0 10px 30px rgba(30, 55, 90, .045);
+            transition: transform .25s ease, box-shadow .25s ease,
+                        border-color .25s ease;
+        }
+        .sc-education .sc-card:hover {
+            transform: translateY(-5px);
+            border-color: #bfd5ff;
+            box-shadow: 0 18px 36px rgba(37, 99, 235, .11);
+        }
+        .sc-education .sc-card-icon {
+            width: 50px; height: 50px; border-radius: 16px;
+            display: grid; place-items: center;
+            background: #eff6ff; color: #2563eb; font-size: 1.4rem;
+            margin-bottom: 18px;
+        }
+        .sc-education .sc-card h3 {
+            font-size: 1.12rem; font-weight: 800; margin-bottom: 10px;
+        }
+        .sc-education .sc-card p {
+            color: var(--sc-muted); line-height: 1.75; font-size: .94rem;
+        }
+        .sc-education .sc-link {
+            border: 0; background: none; color: #2563eb;
+            padding: 0; font-weight: 750; text-decoration: none;
+        }
+        .sc-education .sc-link:hover { color: #1e40af; }
+        .sc-education .sc-section-title {
+            font-size: clamp(1.55rem, 3vw, 2.15rem);
+            font-weight: 850; letter-spacing: -.03em;
+        }
+        .sc-education .sc-topic {
+            border: 1px solid #e2eaf4; border-radius: 18px;
+            background: #fff; margin-bottom: 12px; overflow: hidden;
+        }
+        .sc-education .sc-topic summary {
+            cursor: pointer; padding: 20px 22px; font-weight: 750;
+            list-style: none; display: flex; align-items: center; gap: 12px;
+        }
+        .sc-education .sc-topic summary::-webkit-details-marker { display: none; }
+        .sc-education .sc-topic summary::after {
+            content: "+"; margin-left: auto; color: #2563eb;
+            font-size: 1.4rem; font-weight: 500;
+        }
+        .sc-education .sc-topic[open] summary::after { content: "−"; }
+        .sc-education .sc-topic-body {
+            padding: 0 22px 22px; color: var(--sc-muted); line-height: 1.85;
+        }
+        .sc-education .sc-note {
+            padding: 23px; border-radius: 20px;
+            border: 1px solid #dbeafe; background: #eff6ff;
+            color: #1e3a8a; line-height: 1.8;
+        }
+        .sc-education .sc-primary-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 9px; border-radius: 13px; padding: 13px 20px;
+            background: #2563eb; color: white; text-decoration: none;
+            font-weight: 750; border: 1px solid #2563eb;
+            transition: transform .2s ease, background .2s ease;
+        }
+        .sc-education .sc-primary-btn:hover {
+            background: #1d4ed8; color: white; transform: translateY(-2px);
+        }
+        .sc-education .sc-secondary-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 9px; border-radius: 13px; padding: 13px 20px;
+            background: #fff; color: #1d4ed8; text-decoration: none;
+            font-weight: 750; border: 1px solid #cbdcf8;
+        }
+        .sc-education .sc-reveal {
+            animation: scRise .65s ease both;
+        }
+        .sc-education .sc-delay { animation-delay: .12s; }
+        @keyframes scRise {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .sc-education *, .sc-education *::before,
+            .sc-education *::after {
+                animation: none !important; transition: none !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+
+    <div class="sc-container">
+        <header class="sc-hero sc-reveal mb-5">
+            <span class="sc-eyebrow">
+                <i class="bi bi-book-half"></i> SALTCARE HEALTH EDUCATION
+            </span>
+            <div class="sc-hero-icon mt-4">
+                <i class="bi bi-heart-pulse"></i>
+            </div>
+            <h1 class="sc-title">
+                Kenali Hipertensi,<br>
+                <span class="sc-gradient">Mulai dari Kebiasaan Sehari-hari.</span>
+            </h1>
+            <p class="sc-lead mb-4">
+                Pelajari faktor risiko hipertensi, hubungan konsumsi garam
+                dengan tekanan darah, dan kebiasaan yang dapat membantu
+                menjaga kesehatan jantung. Materi ini merupakan informasi
+                edukatif, bukan pengganti konsultasi tenaga kesehatan.
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+                <a class="sc-primary-btn" href="#materi">
+                    Jelajahi Materi <i class="bi bi-arrow-down-right"></i>
+                </a>
+                <a class="sc-secondary-btn" href="{{ url_for('prediction.prediction') }}">
+                    <i class="bi bi-activity"></i> Coba Klasifikasi
+                </a>
+            </div>
+        </header>
+
+        <section id="materi" class="mb-5">
+            <div class="mb-4 sc-reveal">
+                <span class="sc-eyebrow">MATERI UTAMA</span>
+                <h2 class="sc-section-title mt-3 mb-2">Mulai dari hal yang penting</h2>
+                <p class="sc-lead mb-0">
+                    Pilih topik untuk memahami informasi dasar tentang
+                    hipertensi dan pencegahan melalui kebiasaan sehat.
+                </p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4 sc-reveal">
+                    <article class="sc-card">
+                        <div class="sc-card-icon"><i class="bi bi-heart-pulse"></i></div>
+                        <h3>Apa Itu Hipertensi?</h3>
+                        <p>
+                            Hipertensi adalah kondisi ketika tekanan darah
+                            berada di atas batas yang direkomendasikan secara
+                            menetap. Kondisi ini sering tidak menimbulkan
+                            gejala yang jelas.
+                        </p>
+                        <a class="sc-link" href="#topik-hipertensi">
+                            Baca selengkapnya <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </article>
+                </div>
+
+                <div class="col-md-6 col-lg-4 sc-reveal sc-delay">
+                    <article class="sc-card">
+                        <div class="sc-card-icon"><i class="bi bi-moisture"></i></div>
+                        <h3>Garam dan Tekanan Darah</h3>
+                        <p>
+                            Asupan natrium yang berlebihan dapat berkontribusi
+                            terhadap peningkatan tekanan darah. Perhatikan
+                            garam tambahan dan natrium pada makanan kemasan.
+                        </p>
+                        <a class="sc-link" href="#topik-garam">
+                            Baca selengkapnya <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </article>
+                </div>
+
+                <div class="col-md-6 col-lg-4 sc-reveal sc-delay">
+                    <article class="sc-card">
+                        <div class="sc-card-icon"><i class="bi bi-person-walking"></i></div>
+                        <h3>Kebiasaan Hidup Sehat</h3>
+                        <p>
+                            Aktivitas fisik, pola makan seimbang, tidur cukup,
+                            tidak merokok, dan pemeriksaan tekanan darah
+                            membantu mendukung kesehatan jantung.
+                        </p>
+                        <a class="sc-link" href="#topik-sehat">
+                            Baca selengkapnya <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-5">
+            <div class="mb-4">
+                <span class="sc-eyebrow">PENJELASAN SINGKAT</span>
+                <h2 class="sc-section-title mt-3">Pahami topiknya lebih lanjut</h2>
+            </div>
+
+            <details class="sc-topic" id="topik-hipertensi">
+                <summary>
+                    <i class="bi bi-heart-pulse text-primary"></i>
+                    Apa yang perlu diketahui tentang hipertensi?
+                </summary>
+                <div class="sc-topic-body">
+                    Tekanan darah menunjukkan tekanan aliran darah terhadap
+                    dinding pembuluh darah. Hipertensi ditentukan melalui
+                    pengukuran tekanan darah dan penilaian yang sesuai oleh
+                    tenaga kesehatan. Satu kali pengukuran atau hasil
+                    klasifikasi dari aplikasi saja tidak cukup untuk
+                    menetapkan diagnosis. Pemeriksaan berkala penting karena
+                    seseorang dapat mengalami tekanan darah tinggi tanpa
+                    merasakan keluhan.
+                </div>
+            </details>
+
+            <details class="sc-topic" id="topik-garam">
+                <summary>
+                    <i class="bi bi-moisture text-primary"></i>
+                    Bagaimana konsumsi garam berkaitan dengan tekanan darah?
+                </summary>
+                <div class="sc-topic-body">
+                    Garam mengandung natrium. Pada sebagian orang, konsumsi
+                    natrium berlebihan dapat meningkatkan tekanan darah.
+                    Sumbernya bukan hanya garam yang ditambahkan saat memasak,
+                    tetapi juga makanan instan, makanan olahan, saus, dan
+                    makanan kemasan. Membaca label gizi, membatasi makanan
+                    tinggi natrium, serta menggunakan bumbu dan rempah
+                    sebagai alternatif dapat membantu mengurangi asupan.
+                    Kebutuhan setiap orang dapat berbeda, terutama pada
+                    kondisi medis tertentu.
+                </div>
+            </details>
+
+            <details class="sc-topic" id="topik-sehat">
+                <summary>
+                    <i class="bi bi-person-walking text-primary"></i>
+                    Kebiasaan apa yang mendukung kesehatan tekanan darah?
+                </summary>
+                <div class="sc-topic-body">
+                    Pilih pola makan seimbang, lakukan aktivitas fisik secara
+                    teratur sesuai kemampuan, jaga berat badan yang sehat,
+                    cukup tidur, kelola stres, hindari rokok, dan batasi
+                    konsumsi natrium. Ukur tekanan darah secara berkala dan
+                    ikuti saran tenaga kesehatan. Jangan menghentikan atau
+                    mengubah obat yang diresepkan tanpa berkonsultasi.
+                </div>
+            </details>
+        </section>
+
+        <aside class="sc-note mb-5">
+            <div class="d-flex gap-3 align-items-start">
+                <i class="bi bi-info-circle-fill fs-4"></i>
+                <div>
+                    <strong>Catatan kesehatan</strong>
+                    <p class="mb-0">
+                        SaltCare merupakan prototipe penelitian yang
+                        menghasilkan klasifikasi berdasarkan pola dalam
+                        dataset. Hasilnya tidak mengukur tekanan darah,
+                        tidak memastikan kondisi medis seseorang, dan tidak
+                        menggantikan diagnosis atau saran tenaga kesehatan.
+                    </p>
+                </div>
+            </div>
+        </aside>
+
+        <section class="text-center">
+            <h2 class="sc-section-title mb-3">Ingin mengenal SaltCare?</h2>
+            <p class="sc-lead mx-auto mb-4">
+                Pelajari tujuan aplikasi, metode klasifikasi, dan cara
+                memahami penjelasan model yang disediakan.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a class="sc-primary-btn" href="{{ url_for('main.about') }}">
+                    Tentang SaltCare <i class="bi bi-arrow-right"></i>
+                </a>
+                <a class="sc-secondary-btn" href="{{ url_for('prediction.prediction') }}">
+                    Mulai Prediksi <i class="bi bi-chevron-right"></i>
+                </a>
+            </div>
+        </section>
+    </div>
+</section>
+{% endblock %}
